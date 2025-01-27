@@ -1,0 +1,132 @@
+{
+    "landmarks": {
+        "russell_sage": {
+            "name": "Russell Sage Laboratory",
+            "built": 1907,
+            "history": {
+                "namesake": "Russell Sage",
+                "significance": "One of RPI's oldest laboratory buildings",
+                "original_purpose": "Home to mechanical and electrical engineering"
+            },
+            "architecture": {
+                "style": "Classical",
+                "features": [
+                    "Prominent columns",
+                    "Historic brick facade",
+                    "Classical architectural elements"
+                ]
+            },
+            "current_use": {
+                "departments": [
+                    "Engineering departments",
+                    "Research laboratories",
+                    "Lecture halls",
+                    "Collaborative spaces"
+                ]
+            }
+        },
+        "west_hall": {
+            "name": "West Hall",
+            "built": 1869,
+            "history": {
+                "original_purpose": "Troy Hospital",
+                "builder": "Sisters of Charity of St. Vincent de Paul",
+                "architect": "Marcus F. Cummings",
+                "timeline": [
+                    {"year": 1869, "event": "Built as Troy Hospital"},
+                    {"year": 1923, "event": "Converted to Catholic Central High School"},
+                    {"year": 1953, "event": "Acquired by RPI"}
+                ]
+            },
+            "architecture": {
+                "style": "French Second Empire",
+                "features": [
+                    "Historic architectural design",
+                    "Period-specific details",
+                    "Preserved facade"
+                ]
+            },
+            "current_use": {
+                "department": "Arts Department",
+                "facilities": [
+                    "Art studios",
+                    "Performance spaces",
+                    "Department offices"
+                ]
+            }
+        },
+        "rpi_union": {
+            "name": "Rensselaer Union",
+            "established": 1890,
+            "significance": "One of few student-run unions in the country",
+            "features": {
+                "student_activities": {
+                    "clubs": "Over 200 organizations",
+                    "types": [
+                        "Cultural groups",
+                        "Academic clubs",
+                        "Recreational organizations"
+                    ]
+                },
+                "facilities": [
+                    "Meeting rooms",
+                    "Dining facilities",
+                    "Game room",
+                    "Bookstore"
+                ]
+            },
+            "events": [
+                "Club fairs",
+                "Concerts",
+                "Cultural festivals",
+                "Student gatherings"
+            ],
+            "management": "Student-run organization"
+        },
+        "folsom_library": {
+            "name": "Folsom Library",
+            "dedicated": 1976,
+            "namesake": {
+                "name": "Richard Gilman Folsom",
+                "role": "RPI President",
+                "years": "1958-1971"
+            },
+            "architecture": {
+                "style": "Brutalist",
+                "features": [
+                    "Concrete exterior",
+                    "Modern design",
+                    "Complements Voorhees Computing Center"
+                ]
+            },
+            "history": {
+                "origins": 1824,
+                "evolution": "Started as single-room collection, moved multiple times before current building"
+            },
+            "current_use": {
+                "facilities": [
+                    "Main library collections",
+                    "Friends of Folsom Library group",
+                    "Academic research facilities",
+                    "Study spaces"
+                ]
+            }
+        },
+        "empac": {
+            "name": "Experimental Media and Performing Arts Center",
+            "opened": 2008,
+            "features": [
+                "Concert hall",
+                "Theater",
+                "Studios",
+                "Research spaces"
+            ],
+            "architecture": {
+                "architect": "Grimshaw Architects",
+                "style": "Modern",
+                "cost": "$200 million",
+                "size": "220,000 square feet"
+            }
+        }
+    }
+} 

@@ -1,0 +1,4 @@
+python-dotenv==1.0.0
+openai==0.28.0
+fuzzywuzzy==0.18.0
+python-Levenshtein==0.23.0  # Optional, but improves fuzzywuzzy performance
