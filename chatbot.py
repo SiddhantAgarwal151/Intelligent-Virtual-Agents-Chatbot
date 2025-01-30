@@ -33,9 +33,9 @@ class RPIChatbot:
                 return response
         
         # Try fuzzy matching first
-        landmark = self._fuzzy_match_landmark(user_input)
+        match_result = self._fuzzy_match_landmark(user_input)
         
-        if not landmark:
+        if not match_result:
             # If fuzzy matching fails, try GPT for noisy input handling
             try:
                 gpt_analysis = self._analyze_noisy_input(user_input)
@@ -46,9 +46,12 @@ class RPIChatbot:
             
             return "I'm not sure which RPI landmark you're asking about. Could you specify one of: Russell Sage Laboratory, West Hall, RPI Union, Folsom Library, or EMPAC?"
         else:
-            self.context['current_topic'] = landmark
+            landmark = match_result['landmark']
             info = self.knowledge['landmarks'].get(landmark, {})
-            return self._generate_basic_response(landmark, info)
+            if match_result['is_fuzzy']:
+                return f"I think you might be referring to {info['name']}. " + self._generate_basic_response(landmark, info)
+            else:
+                return self._generate_basic_response(landmark, info)
 
     def _handle_clear_reference(self, landmark: str) -> str:
         """Handle clear reference to a landmark"""
@@ -67,7 +70,7 @@ class RPIChatbot:
     def _handle_noisy_input(self, original_input: str, detected_landmark: str) -> str:
         """Handle noisy/misspelled input"""
         name = self.knowledge['landmarks'][detected_landmark]['name']
-        response = f"I understand you're asking about {name}. "
+        response = f"I think you might be referring to {name}. "
         self.context['current_topic'] = detected_landmark
         info = self.knowledge['landmarks'][detected_landmark]
         response += self._generate_basic_response(detected_landmark, info)
@@ -101,7 +104,7 @@ class RPIChatbot:
         
         return " ".join(response_parts)
 
-    def _fuzzy_match_landmark(self, query: str) -> Optional[str]:
+    def _fuzzy_match_landmark(self, query: str) -> Optional[Dict]:
         """Match potentially noisy landmark references to known landmarks"""
         landmarks = {
             "russell sage": "russell_sage",
@@ -134,6 +137,7 @@ class RPIChatbot:
         
         # Normalize query
         query = query.lower().strip()
+        original_query = query  # Store original for response
         
         # Remove common filler words
         query = query.replace("tell me about", "").replace("what about", "").replace("where is", "").strip()
@@ -141,7 +145,7 @@ class RPIChatbot:
         # Try direct matches first
         for key, value in landmarks.items():
             if query in key or key in query:
-                return value
+                return {"landmark": value, "is_fuzzy": False}
                 
         # Try fuzzy matching if no direct match
         best_match = None
@@ -152,8 +156,10 @@ class RPIChatbot:
             if ratio > best_ratio and ratio > 70:  # Lower threshold for more lenient matching
                 best_ratio = ratio
                 best_match = landmarks[key]
-                
-        return best_match
+        
+        if best_match:
+            return {"landmark": best_match, "is_fuzzy": True}
+        return None
 
     def _handle_followup(self, user_input: str) -> Optional[str]:
         """Handle follow-up questions about the current landmark"""
