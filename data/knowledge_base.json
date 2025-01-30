@@ -115,17 +115,35 @@
         "empac": {
             "name": "Experimental Media and Performing Arts Center",
             "opened": 2008,
-            "features": [
-                "Concert hall",
-                "Theater",
-                "Studios",
-                "Research spaces"
-            ],
+            "history": {
+                "significance": "State-of-the-art performing arts and media research center",
+                "cost": "$200 million",
+                "completion": "Completed and opened in 2008"
+            },
             "architecture": {
                 "architect": "Grimshaw Architects",
                 "style": "Modern",
-                "cost": "$200 million",
-                "size": "220,000 square feet"
+                "size": "220,000 square feet",
+                "features": [
+                    "Distinctive curved glass and steel exterior",
+                    "Hillside integration design",
+                    "Advanced acoustical engineering",
+                    "Multi-story atrium"
+                ]
+            },
+            "current_use": {
+                "facilities": [
+                    "1,200-seat concert hall",
+                    "400-seat theater",
+                    "Multiple studios",
+                    "Artist-in-residence spaces",
+                    "Research labs"
+                ],
+                "departments": [
+                    "Performance venues",
+                    "Media research facilities",
+                    "Digital art spaces"
+                ]
             }
         }
     }

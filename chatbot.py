@@ -89,20 +89,15 @@ class RPIChatbot:
         elif 'dedicated' in info:
             response_parts.append(f"{name} was dedicated in {info['dedicated']}.")
         
-        # Add current use if available
-        if 'current_use' in info:
-            if isinstance(info['current_use'], dict):
-                if 'departments' in info['current_use']:
-                    response_parts.append(f"It currently houses {', '.join(info['current_use']['departments'])}.")
-                elif 'department' in info['current_use']:
-                    response_parts.append(f"It currently houses the {info['current_use']['department']}.")
-        
         # Add significance if available
         if 'significance' in info:
             response_parts.append(f"It is notable for being {info['significance']}.")
         
-        # Add follow-up prompt
-        response_parts.append("Would you like to know more about its history, architecture, or current use?")
+        # Add context-aware follow-up prompt
+        if landmark == "rpi_union":
+            response_parts.append("Would you like to know more about its student activities, events, or facilities?")
+        else:
+            response_parts.append("Would you like to know more about its history, architecture, or current use?")
         
         return " ".join(response_parts)
 
@@ -165,7 +160,17 @@ class RPIChatbot:
         query = user_input.lower()
         info = self.knowledge['landmarks'].get(self.context['current_topic'], {})
         
-        # Check for specific aspects the user is asking about
+        # Special handling for RPI Union
+        if self.context['current_topic'] == "rpi_union":
+            if any(word in query for word in ['event', 'activities', 'programs']):
+                return self._get_events_info(info)
+            elif any(word in query for word in ['facilities', 'rooms', 'spaces']):
+                return self._get_facilities_info(info)
+            elif any(word in query for word in ['history', 'background', 'past']):
+                return self._get_history_info(info)
+            return None
+        
+        # Standard handling for other landmarks
         if any(word in query for word in ['history', 'background', 'past', 'origin']):
             return self._get_history_info(info)
         elif any(word in query for word in ['architecture', 'design', 'building', 'structure']):
@@ -182,6 +187,11 @@ class RPIChatbot:
         
         if 'history' in info:
             history = info['history']
+            # Handle different history formats
+            if 'evolution' in history:
+                response_parts.append(f"{history['evolution']}")
+            if 'origins' in history:
+                response_parts.append(f"Its origins date back to {history['origins']}.")
             if 'original_purpose' in history:
                 response_parts.append(f"{name}'s original purpose was as {history['original_purpose']}.")
             if 'builder' in history:
@@ -193,11 +203,19 @@ class RPIChatbot:
                     response_parts.append(f"- {event['year']}: {event['event']}")
             if 'significance' in history:
                 response_parts.append(f"It is historically significant as {history['significance']}.")
+            if 'namesake' in info:  # Some landmarks have namesake info at top level
+                namesake = info['namesake']
+                if isinstance(namesake, dict):
+                    response_parts.append(f"It was named after {namesake['name']}")
+                    if 'role' in namesake:
+                        response_parts.append(f"who was {namesake['role']}")
+                    if 'years' in namesake:
+                        response_parts.append(f"from {namesake['years']}")
         
         if not response_parts:
             return f"I don't have detailed historical information about {name}, but you can ask about its architecture or current use."
         
-        return " ".join(response_parts)
+        return " ".join(response_parts).replace("..", ".") + "."
         
     def _get_architecture_info(self, info: Dict) -> str:
         """Generate response about landmark's architecture"""
@@ -223,6 +241,7 @@ class RPIChatbot:
         response_parts = []
         name = info.get('name', 'This landmark')
         
+        # Handle standard current_use structure
         if 'current_use' in info:
             current = info['current_use']
             if isinstance(current, dict):
@@ -233,8 +252,54 @@ class RPIChatbot:
                 if 'facilities' in current:
                     response_parts.append(f"Its facilities include: {', '.join(current['facilities'])}.")
         
+        # Handle RPI Union specific structure
+        if 'features' in info:
+            features = info['features']
+            if isinstance(features, dict):
+                if 'student_activities' in features:
+                    activities = features['student_activities']
+                    if 'clubs' in activities:
+                        response_parts.append(f"It hosts {activities['clubs']}.")
+                    if 'types' in activities:
+                        response_parts.append(f"These include {', '.join(activities['types'])}.")
+                if 'facilities' in features:
+                    response_parts.append(f"Facilities include: {', '.join(features['facilities'])}.")
+
+        if 'events' in info:
+            response_parts.append(f"Regular events include: {', '.join(info['events'])}.")
+
+        if 'management' in info:
+            response_parts.append(f"It is a {info['management']}.")
+        
         if not response_parts:
             return f"I don't have detailed information about {name}'s current use, but you can ask about its history or architecture."
+        
+        return " ".join(response_parts)
+
+    def _get_events_info(self, info: Dict) -> str:
+        """Generate response about Union's events"""
+        response_parts = []
+        name = info.get('name', 'The Union')
+        
+        if 'events' in info:
+            response_parts.append(f"{name} hosts various events including: {', '.join(info['events'])}.")
+        
+        if 'features' in info and 'student_activities' in info['features']:
+            activities = info['features']['student_activities']
+            if 'clubs' in activities:
+                response_parts.append(f"It supports {activities['clubs']}.")
+            if 'types' in activities:
+                response_parts.append(f"These include {', '.join(activities['types'])}.")
+        
+        return " ".join(response_parts)
+
+    def _get_facilities_info(self, info: Dict) -> str:
+        """Generate response about Union's facilities"""
+        response_parts = []
+        name = info.get('name', 'The Union')
+        
+        if 'features' in info and 'facilities' in info['features']:
+            response_parts.append(f"{name}'s facilities include: {', '.join(info['features']['facilities'])}.")
         
         return " ".join(response_parts)
 
