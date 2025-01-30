@@ -6,7 +6,12 @@
             "history": {
                 "namesake": "Russell Sage",
                 "significance": "One of RPI's oldest laboratory buildings",
-                "original_purpose": "Home to mechanical and electrical engineering"
+                "original_purpose": "Home to mechanical and electrical engineering",
+                "timeline": [
+                    {"year": 1907, "event": "Funded by Margaret Olivia Sage in memory of her husband"},
+                    {"year": 1950, "event": "Expanded to accommodate growing engineering departments"},
+                    {"year": 2000, "event": "Renovated for modern engineering research"}
+                ]
             },
             "architecture": {
                 "style": "Classical",
@@ -18,10 +23,14 @@
             },
             "current_use": {
                 "departments": [
-                    "Engineering departments",
-                    "Research laboratories",
+                    "Mechanical Engineering",
+                    "Electrical Engineering",
+                    "Research Laboratories"
+                ],
+                "facilities": [
                     "Lecture halls",
-                    "Collaborative spaces"
+                    "Collaborative spaces",
+                    "Computational labs"
                 ]
             }
         },
@@ -35,15 +44,18 @@
                 "timeline": [
                     {"year": 1869, "event": "Built as Troy Hospital"},
                     {"year": 1923, "event": "Converted to Catholic Central High School"},
-                    {"year": 1953, "event": "Acquired by RPI"}
-                ]
+                    {"year": 1953, "event": "Acquired by RPI"},
+                    {"year": 1970, "event": "Repurposed for RPI's Arts Department"}
+                ],
+                "significance": "One of the most architecturally distinct buildings on campus"
             },
             "architecture": {
                 "style": "French Second Empire",
                 "features": [
                     "Historic architectural design",
                     "Period-specific details",
-                    "Preserved facade"
+                    "Preserved facade",
+                    "Mansard roof"
                 ]
             },
             "current_use": {
@@ -51,7 +63,8 @@
                 "facilities": [
                     "Art studios",
                     "Performance spaces",
-                    "Department offices"
+                    "Department offices",
+                    "Multimedia labs"
                 ]
             }
         },
@@ -59,27 +72,48 @@
             "name": "Rensselaer Union",
             "established": 1890,
             "significance": "One of few student-run unions in the country",
+            "history": {
+                "timeline": [
+                    {"year": 1890, "event": "Established as a student gathering space"},
+                    {"year": 1967, "event": "Major expansion to accommodate more student activities"},
+                    {"year": 2000, "event": "Renovated with modern facilities"}
+                ]
+            },
+            "architecture": {
+                "style": "Collegiate Gothic",
+                "features": [
+                    "Arched windows",
+                    "Grand entrance",
+                    "Student-centered design",
+                    "Brick and stone facade"
+                ]
+            },
             "features": {
                 "student_activities": {
                     "clubs": "Over 200 organizations",
                     "types": [
                         "Cultural groups",
                         "Academic clubs",
-                        "Recreational organizations"
+                        "Recreational organizations",
+                        "Volunteer groups"
                     ]
                 },
                 "facilities": [
                     "Meeting rooms",
                     "Dining facilities",
                     "Game room",
-                    "Bookstore"
+                    "Bookstore",
+                    "Auditorium",
+                    "Bowling alley"
                 ]
             },
             "events": [
                 "Club fairs",
                 "Concerts",
                 "Cultural festivals",
-                "Student gatherings"
+                "Student gatherings",
+                "Career fairs",
+                "Guest speaker events"
             ],
             "management": "Student-run organization"
         },
@@ -96,19 +130,27 @@
                 "features": [
                     "Concrete exterior",
                     "Modern design",
-                    "Complements Voorhees Computing Center"
+                    "Complements Voorhees Computing Center",
+                    "Open floor study areas"
                 ]
             },
             "history": {
                 "origins": 1824,
-                "evolution": "Started as single-room collection, moved multiple times before current building"
+                "timeline": [
+                    {"year": 1824, "event": "First RPI library established in a single room"},
+                    {"year": 1928, "event": "Library relocated to a larger space"},
+                    {"year": 1976, "event": "Dedicated as Folsom Library"}
+                ],
+                "evolution": "Started as a small collection, expanded into a modern academic library"
             },
             "current_use": {
                 "facilities": [
                     "Main library collections",
                     "Friends of Folsom Library group",
                     "Academic research facilities",
-                    "Study spaces"
+                    "Quiet study spaces",
+                    "Digital archives",
+                    "Technology lending services"
                 ]
             }
         },
@@ -118,7 +160,12 @@
             "history": {
                 "significance": "State-of-the-art performing arts and media research center",
                 "cost": "$200 million",
-                "completion": "Completed and opened in 2008"
+                "completion": "Completed and opened in 2008",
+                "timeline": [
+                    {"year": 2003, "event": "Construction begins"},
+                    {"year": 2008, "event": "Grand opening of EMPAC"},
+                    {"year": 2015, "event": "Becomes a hub for media and performance research"}
+                ]
             },
             "architecture": {
                 "architect": "Grimshaw Architects",
@@ -137,14 +184,23 @@
                     "400-seat theater",
                     "Multiple studios",
                     "Artist-in-residence spaces",
-                    "Research labs"
+                    "Research labs",
+                    "Motion capture lab"
                 ],
                 "departments": [
                     "Performance venues",
                     "Media research facilities",
                     "Digital art spaces"
+                ],
+                "events": [
+                    "Experimental performances",
+                    "Film screenings",
+                    "Theatrical productions",
+                    "Music concerts",
+                    "Artist talks",
+                    "Multimedia installations"
                 ]
             }
         }
     }
-} 
+}
