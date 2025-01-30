@@ -47,6 +47,7 @@ class RPIChatbot:
             return "I'm not sure which RPI landmark you're asking about. Could you specify one of: Russell Sage Laboratory, West Hall, RPI Union, Folsom Library, or EMPAC?"
         else:
             landmark = match_result['landmark']
+            self.context['current_topic'] = landmark  # Update context with current landmark
             info = self.knowledge['landmarks'].get(landmark, {})
             if match_result['is_fuzzy']:
                 return f"I think you might be referring to {info['name']}. " + self._generate_basic_response(landmark, info)
