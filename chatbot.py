@@ -6,37 +6,72 @@ from fuzzywuzzy import fuzz
 import os
 
 class RPIChatbot:
+    """
+    A chatbot specialized in handling queries about RPI (Rensselaer Polytechnic Institute) landmarks.
+    
+    This class implements a context-aware conversation system that can:
+    - Process natural language queries about RPI landmarks
+    - Handle fuzzy matching for misspelled or unclear references
+    - Maintain conversation context for follow-up questions
+    - Generate detailed responses about landmark history, architecture, and current use
+    - Integrate with OpenAI's GPT for handling ambiguous queries
+    
+    The chatbot uses a JSON-based knowledge base and implements various matching and
+    response generation strategies to provide accurate and contextual information.
+    """
+
     def __init__(self):
+        """
+        Initialize the chatbot with an empty context and load the knowledge base.
+        Sets up OpenAI API integration and initializes conversation tracking.
+        """
+        # Track current conversation state and history
         self.context = {
-            'current_topic': None,
-            'current_subtopic': None,
-            'conversation_history': []
+            'current_topic': None,  # Currently discussed landmark
+            'current_subtopic': None,  # Current aspect (history, architecture, etc.)
+            'conversation_history': []  # Full conversation log
         }
         
-        # Load knowledge base
+        # Load landmark information from JSON file
+        # Expected format: {'landmarks': {'landmark_key': {'name': str, 'built': str, ...}}}
         with open('data/knowledge_base.json', 'r') as f:
             self.knowledge = json.load(f)
             
-        # Configure OpenAI
+        # Configure OpenAI API for advanced query processing
         openai.api_key = os.getenv('OPENAI_API_KEY')
         
     def process_input(self, user_input: str) -> str:
-        """Process user input and generate appropriate response"""
-        # Add input to history
+        """
+        Process user input and generate an appropriate response.
+        
+        This is the main entry point for handling user queries. It implements a multi-stage
+        processing pipeline:
+        1. Context check for follow-up questions
+        2. Fuzzy matching for landmark identification
+        3. GPT-based analysis for ambiguous inputs
+        4. Response generation based on matched landmark
+        
+        Args:
+            user_input: The raw text input from the user
+            
+        Returns:
+            str: Generated response based on the input and current context
+        """
+        # Log user input in conversation history
         self.context['conversation_history'].append({"role": "user", "content": user_input})
         
-        # Check for follow-up questions about the current topic
+        # Check if this is a follow-up question about the current topic
         if self.context['current_topic']:
             response = self._handle_followup(user_input)
             if response:
                 self.context['conversation_history'].append({"role": "assistant", "content": response})
                 return response
         
-        # Try fuzzy matching first
+        # Attempt fuzzy matching to identify landmark references
         match_result = self._fuzzy_match_landmark(user_input)
         
         if not match_result:
-            # If fuzzy matching fails, try GPT for noisy input handling
+            # If fuzzy matching fails, attempt GPT-based analysis
             try:
                 gpt_analysis = self._analyze_noisy_input(user_input)
                 if gpt_analysis.get('landmark'):
@@ -44,24 +79,45 @@ class RPIChatbot:
             except Exception as e:
                 logging.error(f"Error in GPT analysis: {e}")
             
+            # If all matching attempts fail, provide guidance
             return "I'm not sure which RPI landmark you're asking about. Could you specify one of: Russell Sage Laboratory, West Hall, RPI Union, Folsom Library, or EMPAC?"
         else:
+            # Process successful match
             landmark = match_result['landmark']
-            self.context['current_topic'] = landmark  # Update context with current landmark
+            self.context['current_topic'] = landmark
             info = self.knowledge['landmarks'].get(landmark, {})
+            
+            # Handle fuzzy vs exact matches differently
             if match_result['is_fuzzy']:
                 return f"I think you might be referring to {info['name']}. " + self._generate_basic_response(landmark, info)
             else:
                 return self._generate_basic_response(landmark, info)
 
     def _handle_clear_reference(self, landmark: str) -> str:
-        """Handle clear reference to a landmark"""
+        """
+        Handle unambiguous references to landmarks.
+        
+        Args:
+            landmark: The identified landmark key
+            
+        Returns:
+            str: Generated response about the landmark
+        """
         self.context['current_topic'] = landmark
         info = self.knowledge['landmarks'].get(landmark, {})
         return self._generate_basic_response(landmark, info)
 
     def _handle_ambiguous_reference(self, possible_landmarks: List[str]) -> str:
-        """Handle ambiguous reference to multiple landmarks"""
+        """
+        Handle cases where multiple landmarks might match the query.
+        Generates a clarification request listing possible matches.
+        
+        Args:
+            possible_landmarks: List of potential landmark matches
+            
+        Returns:
+            str: Response asking for clarification
+        """
         response = "I'm not sure which landmark you mean. Are you asking about:\n"
         for landmark in possible_landmarks:
             response += f"- {self.knowledge['landmarks'][landmark]['name']}\n"
@@ -69,7 +125,17 @@ class RPIChatbot:
         return response
 
     def _handle_noisy_input(self, original_input: str, detected_landmark: str) -> str:
-        """Handle noisy/misspelled input"""
+        """
+        Handle inputs with potential misspellings or unclear references.
+        Confirms the interpreted landmark and provides information.
+        
+        Args:
+            original_input: The user's original query
+            detected_landmark: The landmark identified through analysis
+            
+        Returns:
+            str: Confirmation and information about the detected landmark
+        """
         name = self.knowledge['landmarks'][detected_landmark]['name']
         response = f"I think you might be referring to {name}. "
         self.context['current_topic'] = detected_landmark
@@ -78,14 +144,24 @@ class RPIChatbot:
         return response
 
     def _generate_basic_response(self, landmark: str, info: Dict) -> str:
-        """Generate a basic response about a landmark"""
+        """
+        Generate a standard response about a landmark including basic information
+        and a context-appropriate follow-up prompt.
+        
+        Args:
+            landmark: The landmark identifier
+            info: Dictionary containing landmark information
+            
+        Returns:
+            str: Formatted response with basic information and follow-up prompt
+        """
         if not info:
             return "I have some information about that landmark, but I'm having trouble accessing it right now."
         
         name = info.get('name', 'this landmark')
         response_parts = []
         
-        # Add basic information
+        # Add establishment information using available date fields
         if 'built' in info:
             response_parts.append(f"{name} was built in {info['built']}.")
         elif 'established' in info:
@@ -97,7 +173,7 @@ class RPIChatbot:
         if 'significance' in info:
             response_parts.append(f"It is notable for being {info['significance']}.")
         
-        # Add context-aware follow-up prompt
+        # Add context-specific follow-up prompt
         if landmark == "rpi_union":
             response_parts.append("Would you like to know more about its student activities, events, or facilities?")
         else:
@@ -106,7 +182,21 @@ class RPIChatbot:
         return " ".join(response_parts)
 
     def _fuzzy_match_landmark(self, query: str) -> Optional[Dict]:
-        """Match potentially noisy landmark references to known landmarks"""
+        """
+        Match user input to known landmarks using fuzzy string matching.
+        Handles variations in spelling, partial matches, and common abbreviations.
+        
+        Implementation uses a comprehensive alias dictionary and the fuzzywuzzy
+        library for string similarity matching.
+        
+        Args:
+            query: The user's input text
+            
+        Returns:
+            Optional[Dict]: Dictionary with matched landmark and match type,
+                          or None if no match found
+        """
+        # Comprehensive alias dictionary mapping various references to landmark keys
         landmarks = {
             "russell sage": "russell_sage",
             "sage lab": "russell_sage",
@@ -136,25 +226,26 @@ class RPIChatbot:
             "media center": "empac"
         }
         
-        # Normalize query
+        # Normalize query for matching
         query = query.lower().strip()
-        original_query = query  # Store original for response
+        original_query = query
         
-        # Remove common filler words
+        # Remove common filler phrases
         query = query.replace("tell me about", "").replace("what about", "").replace("where is", "").strip()
         
-        # Try direct matches first
+        # Try exact matches first
         for key, value in landmarks.items():
             if query in key or key in query:
                 return {"landmark": value, "is_fuzzy": False}
                 
-        # Try fuzzy matching if no direct match
+        # Fall back to fuzzy matching
         best_match = None
         best_ratio = 0
         
+        # Use partial ratio matching with a 70% threshold
         for key in landmarks.keys():
             ratio = fuzz.partial_ratio(query, key)
-            if ratio > best_ratio and ratio > 70:  # Lower threshold for more lenient matching
+            if ratio > best_ratio and ratio > 70:
                 best_ratio = ratio
                 best_match = landmarks[key]
         
@@ -163,11 +254,24 @@ class RPIChatbot:
         return None
 
     def _handle_followup(self, user_input: str) -> Optional[str]:
-        """Handle follow-up questions about the current landmark"""
+        """
+        Handle follow-up questions about the current landmark.
+        Detects question type and generates appropriate detailed response.
+        
+        Special handling is implemented for the RPI Union with additional
+        categories for events and facilities.
+        
+        Args:
+            user_input: The user's follow-up question
+            
+        Returns:
+            Optional[str]: Detailed response about requested aspect,
+                          or None if question type not recognized
+        """
         query = user_input.lower()
         info = self.knowledge['landmarks'].get(self.context['current_topic'], {})
         
-        # Special handling for RPI Union
+        # Special handling for RPI Union queries
         if self.context['current_topic'] == "rpi_union":
             if any(word in query for word in ['event', 'activities', 'programs']):
                 return self._get_events_info(info)
@@ -188,13 +292,29 @@ class RPIChatbot:
         return None
         
     def _get_history_info(self, info: Dict) -> str:
-        """Generate response about landmark's history"""
+        """
+        Generate detailed historical information about a landmark.
+        
+        Handles various historical data formats including:
+        - Evolution over time
+        - Original purpose
+        - Builder information
+        - Timeline of key events
+        - Historical significance
+        - Namesake information
+        
+        Args:
+            info: Dictionary containing landmark information
+            
+        Returns:
+            str: Formatted historical information
+        """
         response_parts = []
         name = info.get('name', 'This landmark')
         
         if 'history' in info:
             history = info['history']
-            # Handle different history formats
+            # Handle various history data structures
             if 'evolution' in history:
                 response_parts.append(f"{history['evolution']}")
             if 'origins' in history:
@@ -210,7 +330,7 @@ class RPIChatbot:
                     response_parts.append(f"- {event['year']}: {event['event']}")
             if 'significance' in history:
                 response_parts.append(f"It is historically significant as {history['significance']}.")
-            if 'namesake' in info:  # Some landmarks have namesake info at top level
+            if 'namesake' in info:
                 namesake = info['namesake']
                 if isinstance(namesake, dict):
                     response_parts.append(f"It was named after {namesake['name']}")
@@ -225,7 +345,20 @@ class RPIChatbot:
         return " ".join(response_parts).replace("..", ".") + "."
         
     def _get_architecture_info(self, info: Dict) -> str:
-        """Generate response about landmark's architecture"""
+        """
+        Generate information about a landmark's architectural features.
+        
+        Includes:
+        - Architectural style
+        - Notable features
+        - Architect information
+        
+        Args:
+            info: Dictionary containing landmark information
+            
+        Returns:
+            str: Formatted architectural information
+        """
         response_parts = []
         name = info.get('name', 'This landmark')
         
@@ -244,11 +377,26 @@ class RPIChatbot:
         return " ".join(response_parts)
         
     def _get_current_use_info(self, info: Dict) -> str:
-        """Generate response about landmark's current use"""
+        """
+        Generate information about a landmark's current usage.
+        
+        Handles both standard and RPI Union-specific information structures:
+        - Departments housed
+        - Available facilities
+        - Student activities (Union-specific)
+        - Regular events
+        - Management information
+        
+        Args:
+            info: Dictionary containing landmark information
+            
+        Returns:
+            str: Formatted current use information
+        """
         response_parts = []
         name = info.get('name', 'This landmark')
         
-        # Handle standard current_use structure
+        # Handle standard current use information
         if 'current_use' in info:
             current = info['current_use']
             if isinstance(current, dict):
@@ -259,7 +407,7 @@ class RPIChatbot:
                 if 'facilities' in current:
                     response_parts.append(f"Its facilities include: {', '.join(current['facilities'])}.")
         
-        # Handle RPI Union specific structure
+        # Handle RPI Union specific features
         if 'features' in info:
             features = info['features']
             if isinstance(features, dict):
@@ -284,7 +432,20 @@ class RPIChatbot:
         return " ".join(response_parts)
 
     def _get_events_info(self, info: Dict) -> str:
-        """Generate response about Union's events"""
+        """
+        Generate information specifically about RPI Union events and activities.
+        
+        Provides details about:
+        - Regular events
+        - Student clubs and activities
+        - Types of supported activities
+        
+        Args:
+            info: Dictionary containing Union information
+            
+        Returns:
+            str: Formatted events and activities information
+        """
         response_parts = []
         name = info.get('name', 'The Union')
         
@@ -301,7 +462,18 @@ class RPIChatbot:
         return " ".join(response_parts)
 
     def _get_facilities_info(self, info: Dict) -> str:
-        """Generate response about Union's facilities"""
+        """
+        Generate information about RPI Union facilities.
+        
+        Provides details about available spaces and facilities
+        within the Union building.
+        
+        Args:
+            info: Dictionary containing Union information
+            
+        Returns:
+            str: Formatted facilities information
+        """
         response_parts = []
         name = info.get('name', 'The Union')
         
@@ -311,7 +483,27 @@ class RPIChatbot:
         return " ".join(response_parts)
 
     def _analyze_noisy_input(self, user_input: str) -> Dict:
-        """Use GPT to analyze potentially noisy or ambiguous input"""
+        """
+        Use GPT to analyze ambiguous or unclear user input.
+        
+        Sends the input to OpenAI's GPT model for advanced natural language
+        understanding and landmark identification. The model analyzes the input
+        and attempts to match it to known landmarks, even when the reference
+        is unclear or misspelled.
+        
+        Args:
+            user_input: The user's original query text
+            
+        Returns:
+            Dict: Analysis results containing:
+                - landmark: Identified landmark key or null
+                - original: Original user input
+                - confidence: Confidence level (high/medium/low)
+                - reasoning: Explanation of the match
+        
+        Raises:
+            Exception: If GPT API call fails or returns invalid response
+        """
         try:
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -332,10 +524,10 @@ class RPIChatbot:
                     """},
                     {"role": "user", "content": user_input}
                 ],
-                temperature=0.3
+                temperature=0.3  # Lower temperature for more consistent analysis
             )
             
             return json.loads(response.choices[0].message['content'])
         except Exception as e:
             logging.error(f"Error in GPT analysis: {e}")
-            return {} 
+            return {}
